@@ -1,103 +1,191 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-export default function Home() {
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+export default function TemperatureChart() {
+  const [timeframe, setTimeframe] = useState("sec");
+  const [temps, setTemps] = useState([20, 25, 23, 21, 24, 26, 28, 27, 29, 25, 22, 20]);
+  const [humidity, setHumidity] = useState(60);
+  const [motion, setMotion] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const secData = {
+    labels: temps.map((_, index) => `${index}s`),
+    datasets: [
+      {
+        label: "Température Actuelle (°C)",
+        data: temps,
+        borderColor: "#6366F1", // Indigo-500
+        backgroundColor: "rgba(99, 102, 241, 0.2)",
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const minData = {
+    labels: temps.map((_, index) => `${index}min`),
+    datasets: [
+      {
+        label: "Température Actuelle (°C)",
+        data: temps.map((t) => Math.round(t * 0.95)),
+        borderColor: "#6366F1",
+        backgroundColor: "rgba(99, 102, 241, 0.2)",
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const heureData = {
+    labels: temps.map((_, index) => `${index}h`),
+    datasets: [
+      {
+        label: "Température Actuelle (°C)",
+        data: temps.map((t) => Math.round(t * 1.05)),
+        borderColor: "#6366F1",
+        backgroundColor: "rgba(99, 102, 241, 0.2)",
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  let chartData;
+  switch (timeframe) {
+    case "min":
+      chartData = minData;
+      break;
+    case "heure":
+      chartData = heureData;
+      break;
+    default:
+      chartData = secData;
+      break;
+  }
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false, 
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+      },
+      y: {
+        grid: { color: "#E5E7EB" },
+        beginAtZero: false,
+        suggestedMin: 0,
+        suggestedMax: 30,
+      },
+    },
+  };
+
+  const adjustTemp = (delta) => {
+    setTemps((prev) => prev.map((t) => t + delta));
+  };
+
+  const feed = () => {
+    setMessage("Nourriture donnée avec succès !");
+    setTimeout(() => setMessage(""), 3000);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="max-w-3xl mx-auto p-4 bg-white shadow-sm rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-semibold text-gray-800">Statistiques du Vivarium</h2>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setTimeframe("sec")}
+            className={`text-sm px-3 py-1 rounded-full ${
+              timeframe === "sec"
+                ? "bg-indigo-500 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Par secondes
+          </button>
+          <button
+            onClick={() => setTimeframe("min")}
+            className={`text-sm px-3 py-1 rounded-full ${
+              timeframe === "min"
+                ? "bg-indigo-500 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
-            Read our docs
-          </a>
+            Par minutes
+          </button>
+          <button
+            onClick={() => setTimeframe("heure")}
+            className={`text-sm px-3 py-1 rounded-full ${
+              timeframe === "heure"
+                ? "bg-indigo-500 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Par heures
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+
+      <p className="text-sm text-gray-500 mb-4">Températures du vivarium</p>
+
+      <div className="relative h-48">
+        <Line data={chartData} options={options} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-6">
+        <div className="bg-white shadow-lg rounded-lg p-4 text-center">
+          <h3 className="font-semibold text-gray-700">Humidité</h3>
+          <p className="text-xl text-gray-900">{humidity}%</p>
+        </div>
+        <div className="bg-white shadow-lg rounded-lg p-4 text-center">
+          <h3 className="font-semibold text-gray-700">Mouvement</h3>
+          <p className="text-xl text-gray-900">{motion ? "Détecté" : "Aucun mouvement"}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <button
+          onClick={feed}
+          className="px-6 py-3 bg-gray-400 hover:bg-gray-500 transition rounded-lg font-medium text-white"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Donner de la nourriture
+        </button>
+        <button
+          onClick={() => adjustTemp(1)}
+          className="px-6 py-3 bg-gray-500 hover:bg-gray-600 transition rounded-lg font-medium text-white"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Augmenter Température
+        </button>
+        <button
+          onClick={() => adjustTemp(-1)}
+          className="px-6 py-3 bg-gray-600 hover:bg-gray-700 transition rounded-lg font-medium text-white"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Diminuer Température
+        </button>
+      </div>
+
+      {message && (
+        <div className="mt-4 text-center text-green-700 font-semibold">
+          {message}
+        </div>
+      )}
     </div>
   );
 }
